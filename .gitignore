@@ -1,0 +1,15 @@
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Archivos de entorno virtual
+venv/
+env/
+*.venv/
+# Archivos de configuración que pueden contener credenciales
+.env
+*.env
+config.json
+secrets.json

@@ -22,7 +22,9 @@ environ.Env.read_env()
 
 #Despliegue
 BASE_DIR = Path(__file__).resolve().parent.parent
-ALLOWED_HOSTS = ["*"]
+PORT = env.int("PORT", default="10000")
+ALLOWED_HOSTS = ["colmenaresdeleje.onrender.com", "127.0.0.1", "localhost"]
+
 
 
 

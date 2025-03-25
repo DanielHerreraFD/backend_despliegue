@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 PORT = os.environ.get("PORT", 10000)
 DEBUG = os.environ.get("DEBUG", "False").lower() in ["true", "1"]
 ALLOWED_HOSTS = ["colmenaresdeleje.onrender.com", "127.0.0.1", "localhost"]
-print(f"PORT detected: {os.environ.get('PORT')}", file=sys.stderr)
+print(f"PORT: {os.environ.get('PORT')}")
 
 
 

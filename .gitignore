@@ -14,3 +14,5 @@ env/
 *.env
 config.json
 secrets.json
+# Ignorar archivos estáticos generados
+/staticfiles/

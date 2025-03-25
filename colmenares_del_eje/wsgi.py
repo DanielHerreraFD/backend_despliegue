@@ -8,8 +8,10 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
 """
 
 import os
-
 from django.core.wsgi import get_wsgi_application
+import sys
+
+print(f"PORT detected: {os.environ.get('PORT')}", file=sys.stderr)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'colmenares_del_eje.settings')
 

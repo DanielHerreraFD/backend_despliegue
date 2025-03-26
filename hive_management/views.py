@@ -9,32 +9,42 @@ import qrcode
 import json
 import base64 
 from io import BytesIO
-from rest_framework.permissions import IsAuthenticated  
+from rest_framework.permissions import IsAuthenticated 
+import environ
+
+env = environ.Env()
+environ.Env.read_env() 
 
 class CreateHiveView(APIView):
     permission_classes = [IsAuthenticated]
     def generate_qr(self, data):
-        qr_data_json = json.dumps(data)
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
             box_size=10,
             border=4,
         )
-        # base_url = "http://localhost:5173/colmena-publica/"
-        # url = f"{base_url}{qr_data_json}"
-        qr.add_data(qr_data_json)
+        base_url = env('BASE_URL')
+        url = f"{base_url}{data}"  
+        
+        qr.add_data(url)  
         qr.make(fit=True)
+        
         qr_image = qr.make_image(fill_color="black", back_color="white")
-        qr_folder = "qr_images"  
-        os.makedirs(qr_folder, exist_ok=True)  
-        file_name = f"qr_hive_{data}.png" 
+        
+        qr_folder = "qr_images"
+        os.makedirs(qr_folder, exist_ok=True)
+        
+        file_name = f"qr_hive_{data}.png"
         file_path = os.path.join(qr_folder, file_name)
+        
         qr_image.save(file_path, format="PNG")
+        
         buffered = BytesIO()
         qr_image.save(buffered, format="PNG")
         qr_base64 = base64.b64encode(buffered.getvalue()).decode()
-        return qr_base64 
+        
+        return qr_base64
 
     def post(self, request):
         try:
@@ -111,17 +121,17 @@ class DetailHiveView(APIView):
             )
 
 
-# class DetailPublicHiveView(APIView):
-#     permission_classes = [AllowAny]
-#     def get(self, request, pk=None):
-#         try:
-#             beehive = Beehive.objects.get(pk=pk)
-#             return Response(BeehiveSerializerOutput(beehive).data)
-#         except Beehive.DoesNotExist:
-#             return Response(
-#                 {"error": "Colmena no encontrada"},
-#                 status=status.HTTP_404_NOT_FOUND
-#             )
+class DetailPublicHiveView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, pk=None):
+        try:
+            beehive = Beehive.objects.get(pk=pk)
+            return Response(BeehiveSerializerOutput(beehive).data)
+        except Beehive.DoesNotExist:
+            return Response(
+                {"error": "Colmena no encontrada"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 

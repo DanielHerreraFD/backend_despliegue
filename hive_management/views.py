@@ -25,7 +25,7 @@ class CreateHiveView(APIView):
             border=4,
         )
         base_url = env('BASE_URL')
-        url = f"{base_url}{data}"  
+        url = f"{base_url}{data}/"  
         
         qr.add_data(url)  
         qr.make(fit=True)

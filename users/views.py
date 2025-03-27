@@ -131,7 +131,7 @@ class loginView(APIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     
 class PasswordResetRequestView(APIView):
-        permission_classes = (permissions.AllowAny,)
+        permission_classes = [AllowAny]
 
         def post(self, request):
             serializer = PasswordResetRequestSerializer(data=request.data)
@@ -171,7 +171,7 @@ class PasswordResetRequestView(APIView):
             
 
 class PasswordResetConfirmView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = [AllowAny]
 
     def post(self, request, uidb64, token):  
         serializer = PasswordResetSerializer(data=request.data)

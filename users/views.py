@@ -129,47 +129,107 @@ class loginView(APIView):
             "state" : user.state
         })
         return Response(data=serializer.data, status=status.HTTP_200_OK)
-    
 class PasswordResetRequestView(APIView):
-        permission_classes = [AllowAny]
+    permission_classes = (permissions.AllowAny,)
 
-        def post(self, request):
-            serializer = PasswordResetRequestSerializer(data=request.data)
-            if serializer.is_valid():
-                email = serializer.validated_data['email']
-                try:
-                    user = CustomUser.objects.get(email=email)
-                except CustomUser.DoesNotExist:
-                    return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    def post(self, request):
+        print("\n[DEBUG] Iniciando proceso de reset de contraseña")
+        print(f"[DEBUG] Datos recibidos: {request.data}")
+        
+        # Validar datos de entrada
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            print(f"[ERROR] Datos inválidos: {serializer.errors}")
+            return Response(
+                {'error': 'Datos inválidos', 'details': serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-                
+        email = serializer.validated_data['email']
+        print(f"[DEBUG] Email validado: {email}")
+        
+        env = environ.Env()
+        print("[DEBUG] Variables de entorno cargadas")
+        
+        try:
+            # 1. Buscar usuario
+            try:
+                print("[DEBUG] Buscando usuario en la base de datos...")
+                user = CustomUser.objects.get(email=email)
+                print(f"[DEBUG] Usuario encontrado: ID {user.id}, {user.email}")
+            except CustomUser.DoesNotExist:
+                print(f"[WARNING] No existe usuario con email: {email}")
+                return Response(
+                    {'message': 'Si este correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.'},
+                    status=status.HTTP_200_OK
+                )
+
+            # 2. Generar token y URL
+            try:
+                print("[DEBUG] Generando token y URL de reset...")
                 token = default_token_generator.make_token(user)
                 uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                print(f"[DEBUG] Token generado: {token}")
+                print(f"[DEBUG] UIDB64 generado: {uidb64}")
+                
                 frontend_url = env('FRONTEND_URL')
+                print(f"[DEBUG] FRONTEND_URL: {frontend_url}")
+                
                 reset_url = f"{frontend_url}/ConfirmPassword/{uidb64}/{token}"
+                print(f"[DEBUG] URL completa: {reset_url}")
+            except Exception as e:
+                print(f"[ERROR] Fallo generando token/URL: {str(e)}")
+                return Response(
+                    {'error': 'Error al generar el enlace de recuperación.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
-
+            # 3. Enviar email
+            try:
+                print("[DEBUG] Preparando email...")
                 context = {
                     'user': user.username,
                     'reset_url': reset_url
                 }
+                print(f"[DEBUG] Contexto email: {context}")
+                
                 html_message = render_to_string('emails/password_reset.html', context)
-                plain_message = strip_tags(html_message)  
-            
+                plain_message = strip_tags(html_message)
+                print("[DEBUG] Plantilla de email renderizada")
+                
+                email_from = env('EMAIL_HOST_USER')
+                print(f"[DEBUG] Email FROM: {email_from}")
+                print(f"[DEBUG] Email TO: {email}")
+                
+                print("[DEBUG] Enviando email...")
                 send_mail(
                     'Restablecimiento de contraseña',
                     plain_message, 
-                    env('EMAIL_HOST_USER'),
+                    email_from,
                     [email],
                     fail_silently=False,
-                    html_message=html_message  
+                    html_message=html_message
                 )
+                print("[DEBUG] Email enviado exitosamente!")
                 
-                return Response({'message': 'Correo electrónico enviado correctamente.'}, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response(
+                    {'message': 'Si este correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.'},
+                    status=status.HTTP_200_OK
+                )
 
+            except Exception as e:
+                print(f"[ERROR CRÍTICO] Fallo enviando email: {str(e)}")
+                return Response(
+                    {'error': 'Error al enviar el correo electrónico de recuperación.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        except Exception as e:
+            print(f"[ERROR GLOBAL] Error inesperado: {str(e)}")
+            return Response(
+                {'error': 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )    
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
 

@@ -58,8 +58,7 @@ class ListPublicHiveHarvestingView(APIView):
 
     def get(self, request):
         try:
-            user = request.user
-            harvests = harvesting.objects.filter(beekeeper=user).order_by('-harvest_date')
+            harvests = harvesting.objects.all().order_by('-harvest_date')
             serializer = OutputHarvestingSerializer(harvests, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         

@@ -69,8 +69,7 @@ class ListPublicBeehiveMonitoringView(APIView):
 
     def get(self, request):
         try:
-            user = request.user
-            monitorings = Monitoring.objects.filter(beekeeper=user).order_by('-monitoring_date')        
+            monitorings = Monitoring.objects.all().order_by('-monitoring_date')
             serializer = MonitoringSerializerOutput(monitorings, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         

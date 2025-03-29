@@ -62,3 +62,16 @@ class ListBeehiveMonitoringView(APIView):
         
         except Exception as e:
             return Response({"error": f"Error al obtener los monitoreos: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+class ListPublicBeehiveMonitoringView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            monitorings = Monitoring.objects.filter(beekeeper=user).order_by('-monitoring_date')        
+            serializer = MonitoringSerializerOutput(monitorings, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({"error": f"Error al obtener los monitoreos: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)

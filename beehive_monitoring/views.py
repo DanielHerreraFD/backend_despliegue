@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework import status
@@ -64,7 +65,7 @@ class ListBeehiveMonitoringView(APIView):
             return Response({"error": f"Error al obtener los monitoreos: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
 class ListPublicBeehiveMonitoringView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         try:
